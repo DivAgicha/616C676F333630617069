@@ -269,7 +269,10 @@ class CustomerCount(views.APIView):
                 for cust in runversion_data['Items']:
                     if cust['CUID']['S'] not in distinct_customerids:
                         try:
-                            id = {'id': cust['referrer_user_id']['S']}                        
+                            if cname.upper()=='MYHBT':
+                                id = {'id': cust['CUID']['S']}
+                            else:
+                                id = {'id': cust['referrer_user_id']['S']}
                         except Exception as e:
                             id = {'id': cust['CUID']['S']}
                         json_data['result']['customerids'].append(id)

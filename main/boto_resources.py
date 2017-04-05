@@ -129,7 +129,7 @@ class boto_for_dynamodb:
                             'S' : cuid
                         },
                     },
-                    FilterExpression = 'CUID = :cuid OR referrer_user_id = :cuid',
+                    FilterExpression = '(CUID = :cuid OR referrer_user_id = :cuid) AND attribute_exists(created_at)',
                     ConsistentRead = True
                 )
             else:
@@ -143,7 +143,7 @@ class boto_for_dynamodb:
                             'S' : ref_code
                         },
                     },
-                    FilterExpression = '(CUID = :cuid OR referrer_user_id = :cuid) AND ref_code = :ref_code',
+                    FilterExpression = '(CUID = :cuid OR referrer_user_id = :cuid) AND ref_code = :ref_code AND attribute_exists(created_at)',
                     ConsistentRead = True
                 )
         else:
@@ -228,6 +228,9 @@ class boto_for_dynamodb:
                         'CUID' : {
                             'ComparisonOperator' : 'NOT_NULL'
                         },
+                        'created_at' : {
+                            'ComparisonOperator' : 'NOT_NULL'
+                        },
                         'isProcessed' : {
                             'AttributeValueList' : [
                                 {
@@ -281,6 +284,9 @@ class boto_for_dynamodb:
                     TableName = config.DYNAMODB.TABLES.CLIENT_CUST,
                     ScanFilter = {
                         'CUID' : {
+                            'ComparisonOperator' : 'NOT_NULL'
+                        },
+                        'created_at' : {
                             'ComparisonOperator' : 'NOT_NULL'
                         },
                         'ref_code' : {
