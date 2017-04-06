@@ -16,6 +16,7 @@ class config:
             CLIENT_CUST = 'Client_Customer'
             VERSIONS = 'COMMUNITY_runversion'
             PROFILE = 'customer_profile'
+            FORM_DATA = 'cust_form_data'
             pass
         pass
         

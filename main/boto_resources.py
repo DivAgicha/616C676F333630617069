@@ -331,11 +331,31 @@ class boto_for_dynamodb:
                 ConsistentRead = True
             )
             
+            form_data = self.dynamodb_client.scan(
+                TableName = config.DYNAMODB.TABLES.FORM_DATA,
+                ScanFilter = {
+                    'CUID' : {
+                        'AttributeValueList' : [
+                            {
+                                'S' : cuid
+                            }
+                        ],
+                        'ComparisonOperator' : 'EQ'
+                    }
+                },
+                ConsistentRead = True
+            )
+            
             user_details = {}
+            
             if user_profile['Count'] > 0:
                 for k, v in user_profile['Items'][0].items():
                     if not k.endswith('UID'):
                         user_details[k] = v['S']
+            
+            if form_data['Count'] > 0:
+                if 'mobile_number' in form_data['Items'][0].keys():
+                    user_details['mobile_number'] = form_data['Items'][0]['mobile_number']['S']
                 
             return user_details
         else:
