@@ -30,7 +30,7 @@ def put_file_contents_as_json(json_data, s3_file_list):
             csv_string = s3_file.get()['Body'].read().decode('utf-8')
             reader = csv.reader(csv_string.splitlines(), delimiter='|')
             lines = list(reader)
-            logger.info(s3_file.key+"\n(storing "+str(len(lines))+" lines as json...)")
+            logger.info(s3_file.key+" (storing "+str(len(lines))+" lines as json...)")
             
             for columnNum in range(0,len(lines[0])):
                 if "var" in lines[0][columnNum].lower() or lines[0][columnNum].lower() in DbLevelData_columns:
@@ -53,7 +53,7 @@ def put_file_contents_as_json_containing_vars(json_data, s3_file_list, var_list,
             csv_string = s3_file.get()['Body'].read().decode('utf-8')
             reader = csv.reader(csv_string.splitlines(), delimiter='|')
             lines = list(reader)
-            logger.info(s3_file.key+"\n(storing "+str(len(lines))+" lines as json...)")
+            logger.info(s3_file.key+" (storing "+str(len(lines))+" lines as json...)")
             
             if not forSpagoBI:
                 for columnNum in range(0,len(lines[0])):
@@ -384,6 +384,18 @@ class SpagoDetails(views.APIView):
             
             logger.info("var_list length: "+str(len(var_list)))#+" "+str(var_list))
             put_file_contents_as_json_containing_vars(json_data, file_list, var_list, True)
+            
+            try:
+                if request.POST.get('user_profile') and (str(request.POST.get('user_profile'))=='True' or str(request.POST.get('user_profile'))=='true'):
+                    logger.info('requesting User Profile...')
+                    user_profile_data = dynamo.get_user_profile_json(cuid)
+                    if len(user_profile_data) > 0:
+                        logger.info('PROFILE RECIEVED')
+                        json_data['result']['data']['UserProfile'] = [user_profile_data]
+                    else:
+                        logger.info('NOT FOUND')
+            except Exception as e:
+                logger.error("error: User Profile could not be received='"+str(e)+"'")
         except Exception as e:
             json_data = {
                 'count': 0,

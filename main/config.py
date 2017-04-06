@@ -15,6 +15,7 @@ class config:
         class TABLES:
             CLIENT_CUST = 'Client_Customer'
             VERSIONS = 'COMMUNITY_runversion'
+            PROFILE = 'customer_profile'
             pass
         pass
         

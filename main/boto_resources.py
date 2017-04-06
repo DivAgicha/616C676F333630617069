@@ -311,4 +311,34 @@ class boto_for_dynamodb:
         else:
             raise Exception("Database can't be accessed before initialising DynamoDB client")
             
+    def get_user_profile_json(self, cuid):
+        if self.dynamodb_client:
+            user_profile = self.dynamodb_client.scan(
+                TableName = config.DYNAMODB.TABLES.PROFILE,
+                ScanFilter = {
+                    'CUID' : {
+                        'AttributeValueList' : [
+                            {
+                                'S' : cuid
+                            }
+                        ],
+                        'ComparisonOperator' : 'EQ'
+                    },
+                    'UUID' : {
+                        'ComparisonOperator' : 'NOT_NULL'
+                    }
+                },
+                ConsistentRead = True
+            )
+            
+            user_details = {}
+            if user_profile['Count'] > 0:
+                for k, v in user_profile['Items'][0].items():
+                    if not k.endswith('UID'):
+                        user_details[k] = v['S']
+                
+            return user_details
+        else:
+            raise Exception("Database can't be accessed before initialising DynamoDB client")
+            
             
