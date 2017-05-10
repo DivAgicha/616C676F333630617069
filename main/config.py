@@ -20,4 +20,12 @@ class config:
             pass
         pass
         
+        class TABLES_TEST:
+            CLIENT_CUST = 'test_Client_Customer'
+            VERSIONS = 'test_runversion'
+            PROFILE = 'test_customer_profile'
+            FORM_DATA = 'test_cust_form_data'
+            pass
+        pass
+        
     pass

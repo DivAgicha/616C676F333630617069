@@ -1,4 +1,4 @@
-import boto3, botocore
+import boto3
 from main.config import config
 from main import log
 
@@ -119,11 +119,13 @@ class boto_for_dynamodb:
             self.dynamodb_client = None
             pass
             
-    def retrieve_alternative(self, cuid, ref_code):
+    def retrieve_alternative(self, cuid, ref_code, request = None):
         if self.dynamodb_client:
+            isTestPath = request.META.get('PATH_INFO', "-").startswith('/test/api') if request else True
+            tbl = config.DYNAMODB.TABLES_TEST() if isTestPath else config.DYNAMODB.TABLES()
             if ref_code=='MYHBT':
                 return self.dynamodb_client.scan(
-                    TableName = config.DYNAMODB.TABLES.CLIENT_CUST,
+                    TableName = tbl.CLIENT_CUST,
                     ExpressionAttributeValues = {
                         ':cuid' : {
                             'S' : cuid
@@ -134,7 +136,7 @@ class boto_for_dynamodb:
                 )
             else:
                 return self.dynamodb_client.scan(
-                    TableName = config.DYNAMODB.TABLES.CLIENT_CUST,
+                    TableName = tbl.CLIENT_CUST,
                     ExpressionAttributeValues = {
                         ':cuid' : {
                             'S' : cuid
@@ -149,11 +151,13 @@ class boto_for_dynamodb:
         else:
             raise Exception("Database can't be accessed before initialising DynamoDB client")
             
-    def scan_db_for_customer(self, cuid, fromDate = None, toDate = None):
+    def scan_db_for_customer(self, cuid, fromDate = None, toDate = None, request = None):
         if self.dynamodb_client:
+            isTestPath = request.META.get('PATH_INFO', "-").startswith('/test/api') if request else True
+            tbl = config.DYNAMODB.TABLES_TEST() if isTestPath else config.DYNAMODB.TABLES()
             if fromDate and toDate:
                 return self.dynamodb_client.scan(
-                    TableName = config.DYNAMODB.TABLES.VERSIONS,
+                    TableName = tbl.VERSIONS,
                     #Limit = 1,
                     ScanFilter = {
                         'CustomerID' : {
@@ -191,7 +195,7 @@ class boto_for_dynamodb:
                 )
             else:
                 return self.dynamodb_client.scan(
-                    TableName = config.DYNAMODB.TABLES.VERSIONS,
+                    TableName = tbl.VERSIONS,
                     #Limit = 1,
                     ScanFilter = {
                         'CustomerID' : {
@@ -219,11 +223,13 @@ class boto_for_dynamodb:
         else:
             raise Exception("Database can't be accessed before initialising DynamoDB client")
             
-    def scan_db_for_distinct_customers(self, ref_code, fromDate = None, toDate = None):
+    def scan_db_for_distinct_customers(self, ref_code, fromDate = None, toDate = None, request = None):
         if self.dynamodb_client:
+            isTestPath = request.META.get('PATH_INFO', "-").startswith('/test/api') if request else True
+            tbl = config.DYNAMODB.TABLES_TEST() if isTestPath else config.DYNAMODB.TABLES()
             if ref_code=='MYHBT':
                 return self.dynamodb_client.scan(
-                    TableName = config.DYNAMODB.TABLES.CLIENT_CUST,
+                    TableName = tbl.CLIENT_CUST,
                     ScanFilter = {
                         'CUID' : {
                             'ComparisonOperator' : 'NOT_NULL'
@@ -244,7 +250,7 @@ class boto_for_dynamodb:
                 )
             elif fromDate and toDate:
                 return self.dynamodb_client.scan(
-                    TableName = config.DYNAMODB.TABLES.CLIENT_CUST,
+                    TableName = tbl.CLIENT_CUST,
                     ScanFilter = {
                         'CUID' : {
                             'ComparisonOperator' : 'NOT_NULL'
@@ -281,7 +287,7 @@ class boto_for_dynamodb:
                 )
             else:
                 return self.dynamodb_client.scan(
-                    TableName = config.DYNAMODB.TABLES.CLIENT_CUST,
+                    TableName = tbl.CLIENT_CUST,
                     ScanFilter = {
                         'CUID' : {
                             'ComparisonOperator' : 'NOT_NULL'
@@ -311,10 +317,12 @@ class boto_for_dynamodb:
         else:
             raise Exception("Database can't be accessed before initialising DynamoDB client")
             
-    def get_user_profile_json(self, cuid):
+    def get_user_profile_json(self, cuid, request = None):
         if self.dynamodb_client:
+            isTestPath = request.META.get('PATH_INFO', "-").startswith('/test/api') if request else True
+            tbl = config.DYNAMODB.TABLES_TEST() if isTestPath else config.DYNAMODB.TABLES()
             user_profile = self.dynamodb_client.scan(
-                TableName = config.DYNAMODB.TABLES.PROFILE,
+                TableName = tbl.PROFILE,
                 ScanFilter = {
                     'CUID' : {
                         'AttributeValueList' : [
@@ -332,7 +340,7 @@ class boto_for_dynamodb:
             )
             
             form_data = self.dynamodb_client.scan(
-                TableName = config.DYNAMODB.TABLES.FORM_DATA,
+                TableName = tbl.FORM_DATA,
                 ScanFilter = {
                     'CUID' : {
                         'AttributeValueList' : [

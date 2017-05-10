@@ -1,5 +1,5 @@
 from django.http import Http404
-import os, csv, time
+import os, csv, time, requests
 from datetime import datetime as dt
 from django.utils import timezone
 
@@ -96,7 +96,7 @@ class CustDetails(views.APIView):
     authentication_classes = [OAuth2Authentication]
     required_scopes = ['read']
     
-    def get(self, request, cuid):
+    def get(self, request, cuid, PushAPI = False):
         clear_screen()
         logger.info("fetching details...")
         
@@ -136,7 +136,7 @@ class CustDetails(views.APIView):
             dynamo.initialise_client
             
             try:
-                alternative = dynamo.retrieve_alternative(cuid, cname.upper())['Items'][0]
+                alternative = dynamo.retrieve_alternative(cuid, cname.upper(), request)['Items'][0]
                 logger.info("original: "+str(cuid)+", alternative: "+alternative['CUID']['S'])
                 cuid = alternative['CUID']['S']
             except Exception as e:
@@ -148,9 +148,9 @@ class CustDetails(views.APIView):
                 fromDate = time.mktime(dt.strptime(fromDate, "%d-%m-%Y %H:%M:%S").timetuple())
                 toDate = time.mktime(dt.strptime(toDate, "%d-%m-%Y %H:%M:%S").timetuple())
                 logger.info("altered 'date': "+str(fromDate)+" to "+str(toDate))
-                runversion_data = dynamo.scan_db_for_customer(cuid, str(fromDate).split(".",1)[0], str(toDate).split(".",1)[0])
+                runversion_data = dynamo.scan_db_for_customer(cuid, str(fromDate).split(".",1)[0], str(toDate).split(".",1)[0], request)
             else:
-                runversion_data = dynamo.scan_db_for_customer(cuid)
+                runversion_data = dynamo.scan_db_for_customer(cuid, None, None, request)
             
             if not runversion_data['Count'] > 0:
                 raise Http404
@@ -209,7 +209,46 @@ class CustDetails(views.APIView):
                 logger.error("error: Customer Not Found-'"+str(e)+"'")
                 json_data['error'] = 'Customer Not Found'
             
+        if PushAPI:
+            return json_data
+            
         return JSONResponse(json_data)
+    
+class CustDetailsPush(views.APIView):
+    authentication_classes = [OAuth2Authentication]
+    required_scopes = ['read']
+    
+    def get(self, request, cuid):
+        clear_screen()
+        logger.info("-------------------initiating PushAPI-------------------")
+         
+        json_data = CustDetails().get(request, cuid, True)
+        
+        json_data_response = {
+            'customerid': cuid,
+        }
+        
+        if json_data['result']['status']=='success':
+            try:
+                logger.info("attempting to send data via PushAPI")
+                endpoint = request.GET.get('url')
+                headers = {'Authorization': 'Bearer 2t4EH3PvwHxqT8mMaQsxE3Iz8smiRj'}
+                
+                r = requests.post(endpoint, headers=headers, data=json_data)
+                
+                logger.info("data sent successfully!!!")
+                logger.info("status code: "+str(r.status_code))
+                logger.info("response: "+str(r.text))
+                json_data_response['status'] = 'success'
+            except Exception as e:
+                logger.error("PushAPI error: "+str(e))
+                json_data_response['status'] = 'failed'
+                json_data_response['error'] = str(e)
+        else:
+            json_data_response['status'] = 'failed'
+            json_data_response['error'] = json_data['error']
+        
+        return JSONResponse(json_data_response)
 
 class CustomerCount(views.APIView):
     authentication_classes = [OAuth2Authentication]
@@ -252,9 +291,9 @@ class CustomerCount(views.APIView):
                 fromDate = time.mktime(dt.strptime(fromDate, "%d-%m-%Y %H:%M:%S").timetuple())
                 toDate = time.mktime(dt.strptime(toDate, "%d-%m-%Y %H:%M:%S").timetuple())
                 logger.info("altered 'date': "+str(fromDate)+" to "+str(toDate))
-                runversion_data = dynamo.scan_db_for_distinct_customers(cname.upper(), str(fromDate).split(".",1)[0], str(toDate).split(".",1)[0])
+                runversion_data = dynamo.scan_db_for_distinct_customers(cname.upper(), str(fromDate).split(".",1)[0], str(toDate).split(".",1)[0], request)
             else:
-                runversion_data = dynamo.scan_db_for_distinct_customers(cname.upper())
+                runversion_data = dynamo.scan_db_for_distinct_customers(cname.upper(), None, None, request)
             
             json_data = {
                 'count': 0,
@@ -337,7 +376,7 @@ class SpagoDetails(views.APIView):
             dynamo.initialise_client
             
             try:
-                alternative = dynamo.retrieve_alternative(cuid, cname.upper())['Items'][0]
+                alternative = dynamo.retrieve_alternative(cuid, cname.upper(), request)['Items'][0]
                 logger.info("original: "+str(cuid)+", alternative: "+alternative['CUID']['S'])
                 cuid = alternative['CUID']['S']
             except Exception as e:
@@ -349,9 +388,9 @@ class SpagoDetails(views.APIView):
                 fromDate = time.mktime(dt.strptime(fromDate, "%d-%m-%Y %H:%M:%S").timetuple())
                 toDate = time.mktime(dt.strptime(toDate, "%d-%m-%Y %H:%M:%S").timetuple())
                 logger.info("altered 'date': "+str(fromDate)+" to "+str(toDate))
-                runversion_data = dynamo.scan_db_for_customer(cuid, str(fromDate).split(".",1)[0], str(toDate).split(".",1)[0])
+                runversion_data = dynamo.scan_db_for_customer(cuid, str(fromDate).split(".",1)[0], str(toDate).split(".",1)[0], request)
             else:
-                runversion_data = dynamo.scan_db_for_customer(cuid)
+                runversion_data = dynamo.scan_db_for_customer(cuid, None, None, request)
             
             if not runversion_data['Count'] > 0:
                 raise Http404
@@ -388,7 +427,7 @@ class SpagoDetails(views.APIView):
             try:
                 if request.POST.get('user_profile') and (str(request.POST.get('user_profile'))=='True' or str(request.POST.get('user_profile'))=='true'):
                     logger.info('requesting User Profile...')
-                    user_profile_data = dynamo.get_user_profile_json(cuid)
+                    user_profile_data = dynamo.get_user_profile_json(cuid, request)
                     if len(user_profile_data) > 0:
                         logger.info('PROFILE RECIEVED')
                         json_data['result']['data']['UserProfile'] = [user_profile_data]

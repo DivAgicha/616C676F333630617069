@@ -1,15 +1,19 @@
 from django.contrib import admin
-from main.models import VariableClassifcation, AccessAttempts
+from main.models import VariableClassifcation, AccessAttempts, AccessAttempts_TEST
 from oauth2_provider.models import get_application_model, Grant, AccessToken, RefreshToken
 from oauth2_provider.admin import RawIDAdmin
 
 class AccessAttemptsView(admin.ModelAdmin):
+    list_display = ('id', 'client_id', 'customer_ip', 'path_hit', 'response_time', 'country', 'lat', 'long', 'city', 'region', 'date')
+
+class AccessAttempts_TESTView(admin.ModelAdmin):
     list_display = ('id', 'client_id', 'customer_ip', 'path_hit', 'response_time', 'country', 'lat', 'long', 'city', 'region', 'date')
     
 class VariableClassifcationView(admin.ModelAdmin):
     list_display = ('id', 'varName', 'desc', 'tags')
 
 admin.site.register(AccessAttempts, AccessAttemptsView)
+admin.site.register(AccessAttempts_TEST, AccessAttempts_TESTView)
 admin.site.register(VariableClassifcation, VariableClassifcationView)
 
 # ------------------- FOR BELOW CODE, UNREGISTER ALREADY REGISTERED MODELS FIRST -------------------

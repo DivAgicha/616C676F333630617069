@@ -1,5 +1,5 @@
 from django.contrib.gis.geoip2 import GeoIP2
-from main.models import AccessAttempts
+from main.models import AccessAttempts, AccessAttempts_TEST
 from oauth2_provider.models import Application
 from main.thread import ThreadBuilderUtility, ThreadDetails
 from main import log
@@ -104,8 +104,12 @@ def register_client_details(req):
         logger.error("error while fetching client details: "+str(e))
         msg_string_for_mail = 'AUTHORIZATION: '+authorization+'\nREMOTE_ADDR: '+remote_address+'\nHTTP_X_FORWARDED_FOR: '+str(x_forwarded_for)+'\nHTTP_X_FORWARDED_HOST: '+x_forwarded_host+'\nHTTP_X_FORWARDED_SERVER: '+x_forwarded_server+'\nHTTP_HOST: '+host+'\n\nCUSTOMER_IP: '+str(ip)+'\nPATH_HIT: '+str(path_hit)+'\nerror: '+str(e)
     else:
-        #access_attempts_obj = AccessAttempts.objects.create(client_id = client, customer_ip = ip, path_hit = path_hit, country = details['country_name'], lat = details['latitude'], long = details['longitude'], city = details['city'], country_code = details['country_code'], postal_code = details['postal_code'], region = details['region'], dma_code = details['dma_code'])
-        pass
+        if path_hit.startswith('/test/api'):
+            #access_attempts_obj = AccessAttempts_TEST.objects.create(client_id = client, customer_ip = ip, path_hit = path_hit, country = details['country_name'], lat = details['latitude'], long = details['longitude'], city = details['city'], country_code = details['country_code'], postal_code = details['postal_code'], region = details['region'], dma_code = details['dma_code'])
+            pass
+        else:
+            #access_attempts_obj = AccessAttempts.objects.create(client_id = client, customer_ip = ip, path_hit = path_hit, country = details['country_name'], lat = details['latitude'], long = details['longitude'], city = details['city'], country_code = details['country_code'], postal_code = details['postal_code'], region = details['region'], dma_code = details['dma_code'])
+            pass
         
     return msg_string_for_mail, access_attempts_obj
 
@@ -114,7 +118,7 @@ class Algo360Middleware(MiddlewareMixin):
         global _request_tracker
         
         #clear_screen()
-        if request.META.get('PATH_INFO', '')=='/' or request.META.get('PATH_INFO', '').startswith('/api') or request.META.get('PATH_INFO', '').startswith('/o/token') or request.META.get('PATH_INFO', '').startswith('/o/revoke_token'):
+        if request.META.get('PATH_INFO', '')=='/' or request.META.get('PATH_INFO', '').startswith('/api') or request.META.get('PATH_INFO', '').startswith('/test/api') or request.META.get('PATH_INFO', '').startswith('/o/token') or request.META.get('PATH_INFO', '').startswith('/o/revoke_token'):
             _request_tracker['msg_string_for_mail'], _request_tracker['access_attempts_obj'] = register_client_details(request)
         else:
             _request_tracker['msg_string_for_mail'], _request_tracker['access_attempts_obj'] = None, None

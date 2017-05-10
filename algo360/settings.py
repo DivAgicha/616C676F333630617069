@@ -92,25 +92,6 @@ DATABASES = {
         'USER': common.get('database_default', 'USER'),
         'PASSWORD': common.get('database_default', 'PASSWORD'),
     },
-    config.get('database_mysql', 'ALIAS'): {
-        'ENGINE': config.get('database_mysql', 'ENGINE'),
-        'NAME': config.get('database_mysql', 'NAME'),
-        'USER': config.get('database_mysql', 'USER'),
-        'PASSWORD': config.get('database_mysql', 'PASSWORD'),
-        'HOST': config.get('database_mysql', 'HOST'),
-        'PORT': config.get('database_mysql', 'PORT'),
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
-    },
-    config.get('database_postgresql', 'ALIAS'): {
-        'ENGINE': config.get('database_postgresql', 'ENGINE'),
-        'NAME': config.get('database_postgresql', 'NAME'),
-        'USER': config.get('database_postgresql', 'USER'),
-        'PASSWORD': config.get('database_postgresql', 'PASSWORD'),
-        'HOST': config.get('database_postgresql', 'HOST'),
-        'PORT': config.get('database_postgresql', 'PORT'),
-    },
 }
 
 LOGIN_URL = common.get('general', 'LOGIN_URL')

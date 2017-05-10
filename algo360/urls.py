@@ -23,6 +23,7 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^basic_admin/', main.admin.admin_site.urls),
     url(r'^api/', include('main.urls')),
+    url(r'^test/api/', include('main.urls')),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     url(r'^__debug__/', include(debug_toolbar.urls)),
